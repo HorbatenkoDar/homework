@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8">
+    <title>AR: Сонячна система</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>body {margin: 0; overflow: hidden;}</style>
+  </head>
+  <body>
+    <a-scene
+      mindar-image="imageTargetSrc: ./myMarker.mind;"
+      embedded
+      color-space="sRGB"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false">
+
+      <!-- Камера -->
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+      <!-- Вся Сонячна система -->
+      <a-entity mindar-image-target="targetIndex: 0" scale="0.02 0.02 0.02" rotation="-90 0 0">
+
+        <!-- Сонце -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_sun.jpg"
+                  radius="1.5" position="0 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 20000"></a-sphere>
+
+        <!-- Меркурій -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"
+                  radius="0.2" position="3 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 10000"></a-sphere>
+
+        <!-- Венера -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"
+                  radius="0.35" position="5 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 18000"></a-sphere>
+
+        <!-- Земля -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg"
+                  radius="0.4" position="7 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 15000"></a-sphere>
+
+        <!-- Місяць -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_moon.jpg"
+                  radius="0.1" position="7.6 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"></a-sphere>
+
+        <!-- Марс -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_mars.jpg"
+                  radius="0.3" position="9 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 20000"></a-sphere>
+
+        <!-- Юпітер -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_jupiter.jpg"
+                  radius="0.9" position="12 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 30000"></a-sphere>
+
+        <!-- Сатурн -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_saturn.jpg"
+                  radius="0.8" position="16 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 35000"></a-sphere>
+        <!-- Кільця Сатурна -->
+        <a-ring src="https://www.solarsystemscope.com/textures/download/2k_saturn_ring_alpha.png"
+                radius-inner="1.0" radius-outer="1.5" rotation="90 0 0" position="16 0 0"></a-ring>
+
+        <!-- Уран -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_uranus.jpg"
+                  radius="0.6" position="20 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 40000"></a-sphere>
+
+        <!-- Нептун -->
+        <a-sphere src="https://www.solarsystemscope.com/textures/download/2k_neptune.jpg"
+                  radius="0.6" position="24 0 0"
+                  animation="property: rotation; to: 0 360 0; loop: true; dur: 45000"></a-sphere>
+
+      </a-entity>
+    </a-scene>
+  </body>
+</html>
+

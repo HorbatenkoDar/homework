@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <!-- A-Frame + AR.js (як ти й просив) -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>body{margin:0;overflow:hidden}</style>
+  </head>
+  <body>
+    <a-scene
+      embedded
+      vr-mode-ui="enabled: false"
+      renderer="logarithmicDepthBuffer: true; antialias: true"
+      arjs="sourceType: webcam; trackingMethod: best; debugUIEnabled: false;"
+    >
+      <!-- трохи світла, щоб стандартні матеріали виглядали яскравіше -->
+      <a-entity light="type: ambient; color: #BBB"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="1 1 0"></a-entity>
+
+      <!-- 1) Hiro → куля -->
+      <a-marker preset="hiro">
+        <a-sphere position="0 0.4 0" radius="0.4" color="#E53935"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 3000">
+        </a-sphere>
+      </a-marker>
+
+      <!-- 2) Kanji → куб -->
+      <a-marker preset="kanji">
+        <a-box position="0 0.4 0" depth="0.8" height="0.8" width="0.8" color="#1E88E5"
+          animation="property: rotation; to: 360 360 0; loop: true; dur: 2500">
+        </a-box>
+      </a-marker>
+
+      <!-- 3) Власний маркер (.patt) → циліндр -->
+      <!-- ВАЖЛИВО: файл myMarker.patt має лежати поруч із цим HTML -->
+      <a-marker type="pattern" url="myMarker.patt">
+        <a-cylinder position="0 0.5 0" radius="0.25" height="1.0" color="#43A047"
+          animation="property: rotation; to: 0 360 0; loop: true; dur: 3500">
+        </a-cylinder>
+      </a-marker>
+
+      <!-- Камера -->
+      <a-entity camera></a-entity>
+    </a-scene>
+  </body>
+</html>
+

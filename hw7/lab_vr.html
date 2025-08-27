@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <title>VR: Модель LHC (тор + 2 протони)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <style>
+    body{margin:0}
+    #hud{position:fixed;left:12px;bottom:12px;background:rgba(0,0,0,.55);color:#fff;
+         padding:10px 12px;border-radius:12px;font:14px/1.35 system-ui,Segoe UI,Roboto,Arial}
+  </style>
+</head>
+<body>
+  <div id="hud">WASD — рух, миша/тач — огляд • Протони рухаються по колу й зіштовхуються</div>
+
+  <a-scene background="color: #000" renderer="colorManagement: true; physicallyCorrectLights: true">
+
+    <!-- Світло -->
+    <a-entity light="type: ambient; intensity: 0.5"></a-entity>
+    <a-entity light="type: point; intensity: 1.8; distance: 50; decay: 2" position="0 2 2"></a-entity>
+
+    <!-- Камера -->
+    <a-entity position="0 1.6 6">
+      <a-camera wasd-controls="acceleration: 12" look-controls="pointerLockEnabled: true"></a-camera>
+    </a-entity>
+
+    <!-- ТОР (прозорий), центр сцени на висоті 1.6 м -->
+    <a-entity id="torus"
+      position="0 1.6 -3"
+      geometry="primitive: torus; radius: 2; radiusTubular: 0.25; segmentsRadial: 48; segmentsTubular: 64"
+      material="color: #4fc3f7; metalness: 0.2; roughness: 0.1; opacity: 0.22; transparent: true; side: double">
+    </a-entity>
+
+    <!-- Контейнер треку з двома протонами -->
+    <a-entity id="track" position="0 1.6 -3" lhc-motion="
+        trackRadius: 2;
+        speed: 1.2;
+        protonRadius: 0.12;
+        collideDistance: 0.24;
+        pauseAfterCollisionMs: 1500
+      ">
+      <!-- Протон 1 -->
+      <a-sphere id="p1" radius="0.12" color="#ff5252" metalness="0.4" roughness="0.2"></a-sphere>
+      <!-- Протон 2 -->
+      <a-sphere id="p2" radius="0.12" color="#69f0ae" metalness="0.4" roughness="0.2"></a-sphere>
+
+      <!-- Простий «спалах» при зіткненні -->
+      <a-entity id="flash" visible="false" position="0 0 0">
+        <a-sphere radius="0.05" color="#fff176" material="emissive: #fff176; emissiveIntensity: 1.0"></a-sphere>
+        <a-entity light="type: point; intensity: 0; distance: 6; decay: 2"></a-entity>
+      </a-entity>
+    </a-entity>
+
+    <!-- Зоряне небо -->
+    <a-sky color="#000"></a-sky>
+
+    <script>
+      // Компонент керує рухом двох частинок по колу та подією зіткнення
+      AFRAME.registerComponent('lhc-motion', {
+        schema: {
+          trackRadius: {type: 'number', default: 2}, // радіус кола (центр тора)
+          speed: {type: 'number', default: 1.2},     // рад/с (кутова швидкість)
+          protonRadius: {type:'number', default: 0.12},
+          collideDistance: {type:'number', default: 0.24}, // поріг зіткнення (≈ сумарний діаметр)
+          pauseAfterCollisionMs: {type:'int', default: 1500}
+        },
+        init: function () {
+          const el = this.el;
+          this.p1 = el.querySelector('#p1');
+          this.p2 = el.querySelector('#p2');
+          this.flash = el.querySelector('#flash');
+          this.flashLight = this.flash.querySelector('[light]');
+          this.theta1 = 0;             // стартові кути
+          this.theta2 = Math.PI;       // назустріч по колу
+          this.collided = false;
+          this.pauseTimer = 0;
+          // Початкові позиції:
+          this.updatePositions(0);
+        },
+        updatePositions: function(dtSec){
+          const R = this.data.trackRadius;
+          const y = 0; // у локальних координатах контейнера (сам контейнер стоїть на 1.6 по Y)
+          // Позиції на колі
+          const x1 = R * Math.cos(this.theta1), z1 = R * Math.sin(this.theta1);
+          const x2 = R * Math.cos(this.theta2), z2 = R * Math.sin(this.theta2);
+          this.p1.object3D.position.set(x1, y, z1);
+          this.p2.object3D.position.set(x2, y, z2);
+        },
+        triggerFlash: function(center){
+          // Короткий спалах світла + анімація сфери
+          this.flash.object3D.position.copy(center);
+          this.flash.setAttribute('visible', 'true');
+          this.flash.setAttribute('animation__scale', {
+            property: 'scale', from: '1 1 1', to: '3 3 3', dur: 200, easing: 'easeOutQuad'
+          });
+          this.flash.setAttribute('animation__fade', {
+            property: 'material.opacity', from: 1, to: 0, dur: 250, easing: 'linear', dir: 'alternate'
+          });
+          this.flashLight.setAttribute('light', 'intensity', 2.5);
+          // Погасити спалах трохи згодом
+          setTimeout(()=>{
+            this.flash.setAttribute('visible', 'false');
+            this.flash.setAttribute('material', 'opacity', 1);
+            this.flash.object3D.scale.set(1,1,1);
+            this.flashLight.setAttribute('light','intensity',0);
+          }, 300);
+        },
+        tick: function (time, dt) {
+          const dtSec = Math.min(dt, 50)/1000; // кап dt
+          const D = this.data;
+
+          if (this.collided) {
+            this.pauseTimer -= dt;
+            if (this.pauseTimer <= 0) {
+              this.collided = false; // продовжити рух після паузи
+            }
+            return;
+          }
+
+          // Рух по колу в протилежних напрямках
+          this.theta1 += D.speed * dtSec;   // за год. стрілкою
+          this.theta2 -= D.speed * dtSec;   // проти год. стрілки
+          this.updatePositions(dtSec);
+
+          // Перевірка зіткнення
+          const p1 = this.p1.object3D.position, p2 = this.p2.object3D.position;
+          const dist2 = p1.distanceTo(p2);
+          if (dist2 <= D.collideDistance) {
+            // Фіксуємо зіткнення: спалах і коротка пауза
+            this.collided = true;
+            this.pauseTimer = D.pauseAfterCollisionMs;
+            // Центр зіткнення (середина між двома позиціями)
+            const center = new THREE.Vector3().addVectors(p1, p2).multiplyScalar(0.5);
+            this.triggerFlash(center);
+          }
+        }
+      });
+    </script>
+  </a-scene>
+</body>
+</html>
